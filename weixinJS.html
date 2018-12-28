@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<head>
+ <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />  
+  <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+    <script type="text/javascript"> 
+	var access_token="";
+	function get_QRCode(){
+		//var post_content="{\"action_name\": \"QR_LIMIT_STR_SCENE\", \"action_info\": {\"scene\": {\"scene_str\": \"1\"}}}";
+		//var post_content='{"action_name": "QR_LIMIT_STR_SCENE", "action_info": {"scene": {"scene_str": "1"}}}';
+		var post_content='{"expire_seconds": 604800, "action_name": "QR_SCENE", "action_info": {"scene": {"scene_id": 1}}}';
+		$.post(
+			"https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token="+access_token,
+			post_content,
+			function(data){
+				$("#img1").attr("src","https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket="+data.ticket);
+			},
+			'json'
+		);
+    }
+	
+	function getUserList(){
+		$('#openid').empty();
+		$.getJSON(
+			"https://api.weixin.qq.com/cgi-bin/user/get?access_token="+access_token, 
+			function(data) {
+			var obj=data.data.openid;
+			$(obj).each(function(index){
+				$("#openid").append("<option value='"+obj[index]+"'>"+obj[index]+"</option>");
+			});
+			}
+		);
+	}
+	
+	function send_WX(){
+		var content=$("#content").val();
+		var openid=$("#openid").val();
+		var post_content = '{"touser":"'+openid+'","msgtype":"text","text":{"content":"'+content+'"}}';
+		$.post("https://api.weixin.qq.com/cgi-bin/message/custom/send?access_token="+access_token,
+			post_content,
+			function (data){
+				//alert(data);
+			},
+			'json'
+		);
+	}
+	
+	function get_AccessToken(){
+		$.getJSON(
+			"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid="+$("#appid").val()+"&secret="+$("#secret").val(), function(res1) {
+				access_token = res1.access_token;
+				$("#accesstoken").val(access_token);
+			}
+		);
+	}
+
+    </script>  
+</head>
+<body>
+<center>
+<h1> 使用 JQuery 获取 AccessToken 及 QRCode</h1>
+<table border=1>
+<tr><td>APPID:</td><td><input  type='text' id='appid' style="width:660px;"/></td></tr>
+<tr><td>APPSECRET:</td><td><input  type='text' id='secret' style="width:660px;"/></td></tr>
+<tr><td colspan=2 align=center><input length=50 type='button' value='获取AccessToken' onclick="get_AccessToken()" />
+<tr><td>Access Token:</td><td><input  type='text' id='accesstoken' style="width:660px;"/></td></tr>
+<tr><td><input type='button' value='获取二维码' onclick="get_QRCode()" /></td><td><img id="img1" /></td></tr>
+</table>
+<br /><br />
+<table>
+<tr><td>OpenID:</td><td><select id='openid'></select></td></tr>
+<tr><td>内  容:</td><td><input  type='text' id='content' /></td></tr>
+<tr><td  align='center'>
+<input  type='button' onclick='getUserList()' value='获得用户列表' /></td><td  align='center'><input type='button' value='立即发送' onclick="send_WX()" /></td></tr>
+</table>
+</center>
+</body>
+</html>
+
+
+
+
+
+
